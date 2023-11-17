@@ -23,7 +23,7 @@ router.post('/signUp', (req, res) => {
         || country === undefined || username === undefined
         || gender === undefined || emailaddress === undefined
     ) {
-        res.send('the details you filled is incorrect')
+        res.send('please fill in your details properly')
     }
 
     else if (middleName === undefined) {
@@ -32,14 +32,14 @@ router.post('/signUp', (req, res) => {
             || !fuctionForAccount.findCountry(country) || !fuctionForAccount.userNameCheck(username) 
             || !fuctionForAccount.passwordCheck(password) || !fuctionForAccount.yesChecker(gender)) {
                
-            res.send('please fill your details properly 1');
+            res.send('please fill in your details properly');
 
         } else {
 
             const domain=fuctionForAccount.splitter(emailaddress);
             if (typeof domain=== 'string') {
                 fuctionForAccount.dnsResolverMx(domain).then((value) => {
-                    res.send('successfuly signed up')
+                    res.send(`successfuly signed up ${username}`)
                 }).catch((err) => {
                     if (err.code === 'ECONNREFUSED') {
                         res.send('our server is currently having a downtime');
@@ -66,14 +66,14 @@ router.post('/signUp', (req, res) => {
             || !fuctionForAccount.userNameCheck(username) || !fuctionForAccount.passwordCheck(password) 
             || !fuctionForAccount.yesChecker(gender)) {
                
-            res.send('please fill your details properly 2');
+            res.send('please fill in your details properly');
 
         } else {
 
             const domain=fuctionForAccount.splitter(emailaddress);
             if (typeof domain=== 'string') {
                 fuctionForAccount.dnsResolverMx(domain).then((value) => {
-                    res.send('successfuly signed up')
+                    res.send(`successfuly signed up ${username}`)
                 }).catch((err) => {
                     if (err.code === 'ECONNREFUSED') {
                         res.send('our server is currently having a downtime');
