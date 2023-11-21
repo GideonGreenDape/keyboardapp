@@ -17,11 +17,11 @@ flag2=['-COMPRESS','CONNECT_WITH_DB','FOUND_ROWS','-IGNORE_SIGPIPE','IGNORE_SPAC
  * @param {string} timeOut 
  * @param {string} databaseName
  * @param {string}  allowMultipleStatement
- * @param {Array} flags 
+ * @param {Array} flag 
  */
 
 function configFunction(username, passcode, databaseName, myTimezone,
-    allowMultipleStatement, timeOut, flags) {
+    allowMultipleStatement, timeOut, flag) {
 
     return {
         host: 'localhost',
@@ -34,7 +34,8 @@ function configFunction(username, passcode, databaseName, myTimezone,
         insecureAuth: false,
         debug: false,
         localInfile: true,
-        multipleStatements: allowMultipleStatement
+        multipleStatements: allowMultipleStatement,
+        flags: flag
 
     };
 };
