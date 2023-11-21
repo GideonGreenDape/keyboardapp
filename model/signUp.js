@@ -1,7 +1,7 @@
 require('dotenv').config();
 const process = require('process');
 const mysqlconfig = require('./mysqlconfigurationfile');
-const mysql = require('mysql');
+
 
 
 const host = process.env.HOST;
@@ -15,7 +15,6 @@ const connectTimeout = 12000
 const mysqlFlags = mysqlconfig.flag2;
 const options = mysqlconfig.configFunction(user, password, databaseName, timezone, allowMultipleStatement, connectTimeout, mysqlFlags);
 
-const dbConnection = mysql.createConnection(options);
 
 const statement1 = ` 
 INSERT INTO \`keyboard_app\`.\`pre_signup\` set ?
@@ -74,37 +73,21 @@ function queryValue3b(userName, emailAddress, FirstName, lastName,Password, coun
     }
 };
 
-function dbStorageLogic(statement1, query1, statement2, query2, statement3, query3) {
 
-    dbConnection.query(statement1, query1, function (error, result, fields) {
-        if (error) {
-            if (error.code==='ER_DUP_ENTRY'){
-                console.log(error.sqlMessage)
-            };
-        } else {
-            dbConnection.query(statement2, query2, function (error, result, fields) {
-                if (error) {
-                    console.log(error.code);
-                } else {
-                    dbConnection.query(statement3, query3, function (error, result, fields) {
-                        if (error) {
-                            console.log(error.code);
-                        }
-                        else {
-                            console.log('successfull');
-                        }
-                    })
-                }
-            })
-        }
-    })
 
-};
+const emailCheck= `
+SELECT email_address FROM keyboard_app.pre_signup where email_address=?;
+`;
+
+const usernameCheck= `
+SELECT username FROM keyboard_app.pre_signup where username=?
+`
 
 
 
 
-module.exports = { dbStorageLogic, statement1, statement2, statement3, queryValue1, queryValue2, queryValue3a,queryValue3b };
+
+module.exports = {statement1, statement2, statement3, queryValue1, queryValue2, queryValue3a,queryValue3b,emailCheck,usernameCheck,options};
 
 
 

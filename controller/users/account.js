@@ -6,6 +6,11 @@ const express = require('express');
 const router = express.Router();
 const fuctionForAccount = require('./functionsforaccount');
 const dbLogic = require('../../model/signUp');
+const mysql = require('mysql');
+require('dotenv').config();
+const process = require('process');
+const jsonToken= require('jsonwebtoken');
+const dbConnection= mysql.createConnection(dbLogic.options)
 
 
 router.post('/signUp', (req, res) => {
@@ -24,38 +29,16 @@ router.post('/signUp', (req, res) => {
     else if (middleName === undefined) {
 
         if (!fuctionForAccount.names(firstName) || !fuctionForAccount.names(lastName)
-            || !fuctionForAccount.findCountry(country) || !fuctionForAccount.userNameCheck(username)
+            || !fuctionForAccount.findCountry(country)
             || !fuctionForAccount.passwordCheck(password) || !fuctionForAccount.yesChecker(gender)) {
 
             res.send('please fill in your details properly');
 
         }
         else {
-
-            const domain = fuctionForAccount.splitter(emailaddress);
-            if (typeof domain === 'string') {
-                fuctionForAccount.dnsResolverMx(domain).then((value) => {
-                    const statement1 = dbLogic.statement1;
-                    const statement2 = dbLogic.statement2;
-                    const statement3 = dbLogic.statement3;
-                    const query1 = dbLogic.queryValue1(emailaddress, username, 'false');
-                    const query2 = dbLogic.queryValue2(emailaddress, password, username);
-                    const query3a = dbLogic.queryValue3a(username, emailaddress, firstName, lastName, middleName, password, country, gender, 'false');
-                    dbLogic.dbStorageLogic(statement1, query1, statement2, query2, statement3, query3a);
-                }).catch((err) => {
-                    if (err.code === 'ECONNREFUSED') {
-                        res.send('our server is currently having a downtime');
-                    }
-                    else if (err.code === 'ENODATA') {
-                        res.send('this mail is not affiliated to any mail server');
-                    }
-                    else {
-                        res.send('contact our support team');
-                    }
-                })
-            } else {
-                res.send('the email you entered is invalid')
-            }
+          // this response here goes to the client
+          const decodedUsername= jsonToken.verify(username,process.Token_for_username);
+          const email= jsonToken.verify(emailaddress,process.Token_for_username)
         }
     }
 
@@ -65,42 +48,69 @@ router.post('/signUp', (req, res) => {
         emailaddress && gender) {
         if (!fuctionForAccount.names(firstName) || !fuctionForAccount.names(lastName)
             || !fuctionForAccount.names(middleName) || !fuctionForAccount.findCountry(country)
-            || !fuctionForAccount.userNameCheck(username) || !fuctionForAccount.passwordCheck(password)
+            || !fuctionForAccount.passwordCheck(password)
             || !fuctionForAccount.yesChecker(gender)) {
 
             res.send('please fill in your details properly');
 
         } else {
-
-            const domain = fuctionForAccount.splitter(emailaddress);
-            if (typeof domain === 'string') {
-                fuctionForAccount.dnsResolverMx(domain).then((value) => {
-                    // response will be sent from here to the client
-                    const statement1 = dbLogic.statement1;
-                    const statement2 = dbLogic.statement2;
-                    const statement3 = dbLogic.statement3;
-                    const query1 = dbLogic.queryValue1(emailaddress, username, 'false');
-                    const query2 = dbLogic.queryValue2(emailaddress, password, username);
-                    const query3b = dbLogic.queryValue3a(username, emailaddress, firstName, lastName, middleName, password, country, gender, 'false');
-                    dbLogic.dbStorageLogic(statement1, query1, statement2, query2, statement3, query3b);
-                }).catch((err) => {
-                    if (err.code === 'ECONNREFUSED') {
-                        res.send('our server is currently having a downtime');
-                    }
-                    else if (err.code === 'ENODATA') {
-                        res.send('this mail is not affiliated to any mail server');
-                    }
-                    else {
-                        res.send('contact our support team');
-                    }
-                })
-            } else {
-                res.send('the email you entered is invalid');
-            }
+           // this response here goes to the client
         }
     }
 
 
+});
+
+
+
+router.post('/email_token', (req, res) => {
+    const email = req.body.email;
+    const domain = fuctionForAccount.splitter(email);
+    if (typeof domain === 'string') {
+        fuctionForAccount.dnsResolverMx(domain).then((result) => {
+        dbConnection.query(dbLogic.emailCheck,[email],function(error,result,fields){
+            if (error) {
+                console.log(error.sqlMessage);
+                res.send(error.sqlMessage);
+            } else if(result.length <= 0) {
+              const token= jsonToken.sign({
+                    data: `${email}`
+                },process.env.Token_for_email)
+                res.send(token)
+            }  else{
+                res.send('email already registered');
+            }
+        })
+        }).catch((err) => { 
+            console.log(err);
+            res.send(err.message);
+        })
+    }else{
+        res.send('email format not valid')
+    }
+});
+
+
+router.post('/username_check',(req,res)=>{
+    const username= req.body.username
+    if (fuctionForAccount.userNameCheck(username)) {
+        dbConnection.query(dbLogic.usernameCheck,[username],function(error,result,fields) {
+            if (error) {
+                console.log(error.sqlMessage);
+                res.send(error.sqlMessage);
+            } else if(result.length <= 0) {
+              const token= jsonToken.sign({
+                    data: `${username}`
+                },process.env.Token_for_username)
+                res.send(token)
+            }  else{
+                res.send(`username: ${ username} already taken`);
+            }
+        })
+    }else{
+        res.send('username not a valid format')
+    }
+    
 });
 
 
