@@ -37,6 +37,7 @@ router.post('/signUp', (req, res) => {
         }
         else {
           // this response here goes to the client
+          res.send('successfully registered')
           const decodedUsername= jsonToken.verify(username,process.Token_for_username);
           const email= jsonToken.verify(emailaddress,process.Token_for_username)
         }
@@ -55,6 +56,7 @@ router.post('/signUp', (req, res) => {
 
         } else {
            // this response here goes to the client
+           res.send('successfully registered')
         }
     }
 
